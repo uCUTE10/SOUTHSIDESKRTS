@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SOUTHSIDE TUNER CALC. & LOGS</title>
+<link rel="icon" type="image/png" href="AB.png">
+<style>
+:root {
+  --bg:#121212; --card:#1e1e1e; --muted:#aaa; --accent:#90ee90; --btn:#ffd369;
+}
+html,body { height:100%; margin:0; background:var(--bg); color:#f1f1f1; font-family:Arial,sans-serif; }
+.wrap { max-width:980px; margin:24px auto; padding:16px; box-sizing:border-box; }
+h1 { margin:0 0 14px; color:var(--accent); font-size:1.2rem; text-align:center; }
+
+.grid { display:grid; gap:16px; grid-template-columns:1fr; }
+@media(min-width:720px) { .grid { grid-template-columns:2fr 1.8fr; align-items:start; } }
+
+.card { background:var(--card); padding:16px; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.6); margin-bottom:16px; }
+
+.calc-display { width:100%; padding:12px; font-size:20px; border-radius:8px; border:none; background:#0f0f0f; color:#fff; text-align:right; box-sizing:border-box; }
+.keypad { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:12px; }
+button { background:#333; color:#fff; border:none; padding:12px; border-radius:8px; cursor:pointer; font-weight:600; }
+button:hover { filter:brightness(1.12); }
+.btn-equal { background:#4CAF50; color:#fff; }
+.btn-clear { background:#e74c3c; }
+.btn-op { background:#2f2f2f; }
+
+.services { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-bottom:10px; }
+.service-option { padding:6px 12px; border-radius:6px; background:#b82f2f; color:#fff; cursor:pointer; font-weight:700; user-select:none; font-size:0.85rem; }
+.service-option.active { background:#2aa84a; }
+
+.field { display:flex; gap:10px; margin-bottom:8px; flex-wrap:wrap; }
+.field label { width:140px; font-weight:700; color:var(--muted); font-size:0.9rem; }
+.field input[type="text"], .field input[type="number"], .field input[type="date"] { flex:1; min-width:0; padding:6px; border-radius:6px; border:none; background:#0f0f0f; color:#fff; width:100%; box-sizing:border-box; font-size:0.9rem; }
+
+.row-buttons { display:flex; gap:8px; margin-top:8px; }
+.row-buttons button { flex:1; padding:8px; border-radius:8px; font-weight:700; background:var(--btn); color:#000; font-size:0.9rem; }
+
+#logOutput { margin-top:12px; background:#161616; font-family: monospace; padding:10px; border-radius:8px; white-space:pre-wrap; }
+
+.price-card { padding:12px; font-family: monospace; font-size:0.85rem; line-height:1.3; white-space:pre-line; display:none; color:#fff; margin-top:8px; border-radius:8px; background:#1a1a1a; }
+.price-card button { width:100%; padding:8px; margin-bottom:6px; font-weight:700; background:#2aa84a; border:none; border-radius:6px; color:#000; cursor:pointer; }
+.footer {
+      position: fixed; bottom: 0; left: 0; width: 100%; text-align: center; 
+      font-size: 16px; color: #aaa; background: #11111100; padding: 6px 0;
+    }
+
+.footer-link {
+  color: #90ee90; /* same as your accent color */
+  text-decoration: none;
+  transition: all 0.2s ease;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.footer-link:hover {
+  background: #1e1e1e; /* matches card background */
+  color: #ffd369; /* highlight color on hover */
+  text-decoration: underline;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>SOUTHSIDE LOGS AND CALC</h1>
+<div class="grid">
+  <!-- LEFT COLUMN: CALC + PRICE LIST -->
+  <div>
+    <!-- CALCULATOR CARD -->
+    <div class="card">
+      <h2 style="margin:0 0 8px; color:var(--accent);">Basic Calculator</h2>
+      <input id="calcDisplay" class="calc-display" type="text" readonly />
+      <div class="keypad">
+        <button class="btn-clear" onclick="clearDisplay()">C</button>
+        <button class="btn-op" onclick="appendValue('/')">÷</button>
+        <button class="btn-op" onclick="appendValue('*')">×</button>
+        <button onclick="deleteLast()">⌫</button>
+        <button onclick="appendValue('7')">7</button>
+        <button onclick="appendValue('8')">8</button>
+        <button onclick="appendValue('9')">9</button>
+        <button class="btn-op" onclick="appendValue('-')">−</button>
+        <button onclick="appendValue('4')">4</button>
+        <button onclick="appendValue('5')">5</button>
+        <button onclick="appendValue('6')">6</button>
+        <button class="btn-op" onclick="appendValue('+')">+</button>
+        <button onclick="appendValue('1')">1</button>
+        <button onclick="appendValue('2')">2</button>
+        <button onclick="appendValue('3')">3</button>
+        <button class="btn-equal" onclick="calculateResult()">=</button>
+        <button style="grid-column: span 2;" onclick="appendValue('0')">0</button>
+        <button onclick="appendValue('.')">.</button>
+        <button onclick="toggleNeg()">±</button>
+      </div>
+    </div>
+
+    <!-- PRICE LIST -->
+    <div class="card">
+      <button onclick="togglePriceList()">Show / Hide Price List</button>
+      <div id="priceListContent" class="price-card">
+TUNE PRICES
+→ Class X - $ 45,000
+→ Class S - $ 40,000
+→ Class A - $ 35,000
+→ Class B - $ 30,000
+→ Class C - $ 20,000
+→ Class D - $ 15,000
+→ With Tuning Box - +$ 45,000
+
+ TUNE + Steering Rack 
+
+→ Class X - $50,000
+→ Class S - $45,000
+→ Class A - $40,000
+→ Class B - $35,000
+→ Class C - $25,000
+→ Class D - $20,000
+→ With Tuning Box - +$ 45,000
+
+OTHER SERVICES
+→ TUNING BOX ONLY - $ 65,000
+→ GPS TRACKER - $ 6,000
+→ HARNESS - $ 6,000
+→ VIP/RENEWAL - $ 8,000
+→ DRIFTING KIT - $ 15,000
+→ 1 PART TRANSFER/REMOVE - $1,500 (CASH ONLY)
+→ 2 or more PARTS TRANSFER/REMOVE - $3,000 (CASH ONLY)
+
+DISCOUNTS
+→ LSPD/BCSO DISCOUNT - $ 5,000 OFF
+→ OTTO'S AUTO DISCOUNT - $ 2,000 OFF
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT COLUMN: LOGS -->
+  <div class="card">
+    <h2 style="margin:0 0 8px; color:var(--accent);">LOGS & INVOICE </h2>
+
+    <div class="services" id="classOptions">
+      <div class="service-option" onclick="toggleService(this)">X</div>
+      <div class="service-option" onclick="toggleService(this)">S</div>
+      <div class="service-option" onclick="toggleService(this)">A</div>
+      <div class="service-option" onclick="toggleService(this)">B</div>
+      <div class="service-option" onclick="toggleService(this)">C</div>
+      <div class="service-option" onclick="toggleService(this)">D</div>
+      <div class="service-option" onclick="toggleService(this)">W/TUNER BOX</div>
+      <div class="service-option" onclick="toggleService(this)">SOLO TUNER BOX</div>
+      <div class="service-option" onclick="toggleService(this)">DRIFTING KIT</div>
+      <div class="service-option" onclick="toggleService(this)">GPS TRACKER</div>
+      <div class="service-option" onclick="toggleService(this)">HARNESS</div>
+      <div class="service-option" onclick="toggleService(this)">VIP/RENEWAL</div>
+    </div>
+
+    <div class="field"><label>Customer's Name:</label><input id="customerName" type="text"></div>
+    <div class="field"><label>Badge #:</label><input id="badgeNumber" type="text"></div>
+    <div class="field"><label>CID:</label><input id="cidNumber" type="text"></div>
+    <div class="field"><label>Plate #:</label><input id="plateNumber" type="text"></div>
+    <div class="field"><label>Employee's Name:</label><input id="employeeName" type="text"></div>
+    <div class="field"><label>Price:</label><input id="priceNumber" type="number"></div>
+    <div class="field"><label>Date:</label><input id="serviceDate" type="date"></div>
+
+    <div class="row-buttons">
+      <button onclick="submitLogs()">ENTER</button>
+      <button onclick="resetLogs(true)">Reset</button>
+    </div>
+
+    <div id="logOutput"></div>
+  </div>
+</div>
+</div>
+
+<script>
+function appendValue(v){document.getElementById('calcDisplay').value+=v;}
+function clearDisplay(){document.getElementById('calcDisplay').value='';}
+function deleteLast(){const d=document.getElementById('calcDisplay'); d.value=d.value.slice(0,-1);}
+function calculateResult(){const d=document.getElementById('calcDisplay'); if(!d.value)return; try{d.value=Function('"use strict";return ('+d.value+')')();}catch(e){d.value='Error';}}
+function toggleNeg(){const d=document.getElementById('calcDisplay'); if(!d.value)return; const val=parseFloat(d.value); d.value=!isNaN(val)?String(-val):'(-('+d.value+'))';}
+
+function toggleService(el){el.classList.toggle('active');}
+function setPhilippinesDate(){const now=new Date();const phil=new Date(now.toLocaleString('en-US',{timeZone:'Asia/Manila'})); const yyyy=phil.getFullYear(); const mm=String(phil.getMonth()+1).padStart(2,'0'); const dd=String(phil.getDate()).padStart(2,'0'); document.getElementById('serviceDate').value=`${yyyy}-${mm}-${dd}`;}
+
+function submitLogs(){
+  const selectedClasses = Array.from(document.querySelectorAll('#classOptions .service-option.active')).map(e=>e.textContent).join(', ')||'-';
+  const customerName=document.getElementById('customerName').value.trim()||'-';
+  const badgeNumber=document.getElementById('badgeNumber').value.trim()||'-';
+  const cidNumber=document.getElementById('cidNumber').value.trim()||'-';
+  const plateNumber=document.getElementById('plateNumber').value.trim()||'-';
+  const employeeName=document.getElementById('employeeName').value.trim()||'-';
+  const priceNumber=document.getElementById('priceNumber').value.trim()||'-';
+  const serviceDate=document.getElementById('serviceDate').value||'-';
+
+  const outputText=
+`SERVICES: CLASS ${selectedClasses || selectedOptions}
+CUSTOMER: ${customerName}
+BADGE #: ${badgeNumber}
+CID: ${cidNumber}
+PLATE #: ${plateNumber}
+EMPLOYEE: ${employeeName}
+PRICE: ${priceNumber}
+DATE: ${serviceDate}
+
+--------------------
+
+CLASS ${selectedClasses || selectedOptions} | ${customerName} | ${badgeNumber} | ${cidNumber} | ${plateNumber} | ${employeeName} | ${priceNumber} | ${serviceDate}`;
+  
+  const outDiv=document.getElementById('logOutput');
+  outDiv.textContent=outputText;
+  outDiv.style.display='block';
+}
+
+function setPhilippinesDate() {
+  const input = document.getElementById('serviceDate');
+  if (input.value) return; // don't overwrite existing date
+  const now = new Date();
+  const phil = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Manila' }));
+  const yyyy = phil.getFullYear();
+  const mm = String(phil.getMonth() + 1).padStart(2, '0');
+  const dd = String(phil.getDate()).padStart(2, '0');
+  input.value = `${yyyy}-${mm}-${dd}`;
+}
+
+function resetLogs() {
+  document.getElementById('customerName').value = '';
+  document.getElementById('badgeNumber').value = '';
+  document.getElementById('cidNumber').value = '';
+  document.getElementById('plateNumber').value = '';
+  document.getElementById('priceNumber').value = '';
+  document.querySelectorAll('.service-option').forEach(el => el.classList.remove('active'));
+  const now = new Date();
+  const philTime = new Date(now.toLocaleString("en-US", { timeZone: "Asia/Manila" }));
+
+  const year = philTime.getFullYear();
+  const month = String(philTime.getMonth() + 1).padStart(2, "0");
+  const day = String(philTime.getDate()).padStart(2, "0");
+
+  // Reset date to PH current date
+  document.getElementById("serviceDate").value = `${year}-${month}-${day}`;
+  // employeeName stays untouched
+}
+
+function togglePriceList(){
+  const c=document.getElementById('priceListContent');
+  c.style.display=c.style.display==='none'?'block':'none';
+}
+
+document.addEventListener('DOMContentLoaded',()=>{setPhilippinesDate();});
+
+ /* disable right-click context menu */
+document.addEventListener('contextmenu', function(e){
+  e.preventDefault();
+});
+
+
+/* block common devtools / view-source keyboard shortcuts */
+document.addEventListener('keydown', function(e) {
+  // F12
+  if (e.key === 'F12') { e.preventDefault(); showDevWarning(); return; }
+
+  // Ctrl/Cmd + Shift + I / J / C  (open devtools)
+  if ((e.ctrlKey || e.metaKey) && e.shiftKey && 
+      (e.key.toLowerCase() === 'i' || e.key.toLowerCase() === 'j' || e.key.toLowerCase() === 'c')) {
+    e.preventDefault(); showDevWarning(); return;
+  }
+
+  // Ctrl/Cmd + U (view-source)
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'u') {
+    e.preventDefault(); showDevWarning(); return;
+  }
+
+  // Ctrl + Shift + K (Firefox devtools), Ctrl+Shift+S sometimes
+  if (e.ctrlKey && e.shiftKey && (e.key.toLowerCase() === 'k' || e.key.toLowerCase() === 's')) {
+    e.preventDefault(); showDevWarning(); return;
+  }
+});
+
+/* small visual warning if user repeatedly tries keys */
+let devAttempts = 0;
+function showDevWarning(){
+  devAttempts++;
+  if (devAttempts < 3) return; // only show after a few attempts
+
+  if (!document.getElementById('__devWarning')) {
+    const div = document.createElement('div');
+    div.id = '__devWarning';
+    div.innerText = 'Inspecting the source is disabled on this page. If you need access, contact PauTangFM.';
+    Object.assign(div.style, {
+      position: 'fixed',
+      bottom: '20px',
+      left: '50%',
+      transform: 'translateX(-50%)',
+      background: 'rgba(220,20,60,0.95)',
+      color: '#fff',
+      padding: '10px 16px',
+      borderRadius: '8px',
+      zIndex: 999999,
+      fontWeight: '600',
+      boxShadow: '0 6px 20px rgba(0,0,0,0.6)'
+    });
+    document.body.appendChild(div);
+    setTimeout(()=> div.remove(), 4000);
+  }
+  devAttempts = 0;
+}
+
+/* optional: detect if DevTools is open (heuristic) */
+/* NOTE: these checks are not reliable and can be noisy */
+(function detectDevTools() {
+  let opened = false;
+  const threshold = 160; // px; adjust
+  setInterval(function(){
+    const widthThreshold = window.outerWidth - window.innerWidth > threshold;
+    const heightThreshold = window.outerHeight - window.innerHeight > threshold;
+    if ((widthThreshold || heightThreshold) && !opened) {
+      opened = true;
+      showDevWarning();
+    } else if (!(widthThreshold || heightThreshold) && opened) {
+      opened = false;
+    }
+  }, 1000);
+})();
+
+
+</script>
+<div class="footer">
+  Credits: <b><a href="https://discordapp.com/users/767988194519285760" target="_blank" style="color:inherit; text-decoration:none;">PauTangFM</a></b>
+</div>
+</body>
+</html>
